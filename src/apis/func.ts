@@ -1,6 +1,8 @@
 import type { ResType } from "./shared"
 import { http } from "@/utils"
-import type { CheckboxValueType } from 'antd/es/checkbox/Group'
+// import type { CheckboxValueType } from 'antd/es/checkbox/Group'
+
+type CheckboxValueType = string | number
 
 
 // 预测
@@ -33,7 +35,7 @@ interface imagedataItem {
 
 export interface PredictRes {
   excel: string
-  imagedata: imagedataItem[]
+  imgdata: imagedataItem[]
 }
 
 export function PredictAPI(data: PredictParams) {

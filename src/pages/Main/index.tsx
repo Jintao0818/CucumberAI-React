@@ -1,16 +1,15 @@
-import { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { lazy, Suspense } from "react"
-import { Layout, Card, Badge, Divider, Typography, message, Upload, theme, Button, Space, Spin, Modal } from 'antd'
+import { useEffect, useRef, useState, lazy, Suspense } from "react"
+import { Layout, Card, Badge, Divider, Typography, message, Upload, Button, Space, Spin, Modal } from 'antd'
 import { ExclamationCircleOutlined, InboxOutlined } from '@ant-design/icons'
 import type { UploadFile, UploadProps } from 'antd'
 import './style.scss'
 import Paragraph from "antd/es/typography/Paragraph"
 import { baseUrl } from "@/utils"
 import * as imageConversion from 'image-conversion'
-// import { useSelector } from "react-redux"
-import { useRootSelector } from "@/store"
-import { ClearAPI, StatusAPI, PredictAPI } from "@/apis/func"
+import { useRootSelector, useRootDispatch } from "@/store"
+import { setDownloadUrl, setResultData } from '@/store/modules/data'
+import { ClearAPI, PredictAPI } from "@/apis/func"
+import useInit from "@/hooks/useInit"
 
 const { Header, Content, Footer } = Layout
 const { Title } = Typography
@@ -25,37 +24,11 @@ const MainResult = lazy(() => import('./MainResult'))
 
 const Main = () => {
 
-  const navigate = useNavigate()
+  const dispatch = useRootDispatch()
   const { modeValue, characterValue } = useRootSelector(state => state.settings)
 
-  // 判断是否移动设备
-  function _isMobile() {
-    const device = navigator.userAgent.match(
-      /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
-    )
-    return device != null
-  }
+  const { status } = useInit()
 
-  useEffect(() => {
-    const isMobile = _isMobile()
-    console.log('isMobile:', isMobile)
-    if (isMobile) {
-      navigate('/mobile')
-    }
-
-  }, [navigate])
-  
-  useEffect(() => {
-    setInterval(() => {
-      StatusAPI().then((res) => {
-        setStatus(res.data.status)
-      })
-    }, 500000)
-    
-  }, [])
-  
-
-  const [status, setStatus] = useState<boolean>(false)
   const [dotCount, setDotCount] = useState<number>(1)
   const refInstruction: any = useRef(null)
   const refSamples: any = useRef(null)
@@ -85,7 +58,6 @@ const Main = () => {
     fileList,
     beforeUpload(file, fileList) {
 
-      setSpinning(true)
 
       if (fileList.length >= 5) {
         message.warning('Maximum of 5 images can be uploaded.')
@@ -121,10 +93,10 @@ const Main = () => {
           ...fileNameList,
           name
         ])
-        message.success(`${name} file uploaded successfully.`)
+        message.success(`${name} upload successfully.`)
       } else if (status === 'error') {
         setNoAction(false)
-        message.error(`${name} file upload failed.`)
+        message.error(`${name} upload failed.`)
       }
     }
   }
@@ -148,20 +120,33 @@ const Main = () => {
   const [preBtn, setPreBtn] = useState<boolean>(false)
   const [resetBtn, setResetBtn] = useState<boolean>(false)
   const [btnLoading, setBtnLoading] = useState<boolean>(false)
-
+  const [showResult, setShowResult] = useState<boolean>(false)
+  
   const predictPicture = () => {
+
+    setBtnLoading(true)
+    setNoAction(true)
+    
     PredictAPI({
       UA: 'pc',
       mode: modeValue as 'fruit' | 'pulp',
       metrics: characterValue,
       names: fileNameList
     }).then((res) => {
-      console.log("🚀 ~ predict: ", res)
+      setBtnLoading(false)
+      setPreBtn(false)
+      setShowResult(true)
+      dispatch(setDownloadUrl('data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' + res.data.excel))
+      dispatch(setResultData(res.data.imgdata))
+      message.success("Predict successful!")
+    }).catch(err => {
+      setBtnLoading(false)
+      setPreBtn(false)
+      message.error("Predict failed, " + err )
     })
   }
 
-  const [showResult, setShowResult] = useState<boolean>(true)
-
+  
   const { confirm } = Modal
 
   const resetPicture = () => {
@@ -180,8 +165,7 @@ const Main = () => {
         setShowResult(false)
 
         try {
-          const res = await ClearAPI({ names: fileNameList })
-          // message.success(res.data.message)
+          await ClearAPI({ names: fileNameList })
           message.success("Clear successful!")
         } catch (err) {
           message.warning("Clear files failed, " + err)

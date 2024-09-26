@@ -10,7 +10,7 @@ interface dataStore{
 const initialState: dataStore = {
   active: 'home',
   downloadUrl: '',
-  resultData: {}
+  resultData: []
 }
 
 const dataStore = createSlice({

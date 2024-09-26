@@ -1,7 +1,7 @@
 import { Radio, Checkbox } from 'antd'
 import type { RadioChangeEvent } from "antd/es/radio"
 import type { CheckboxChangeEvent } from 'antd/es/checkbox'
-import type { CheckboxValueType } from 'antd/es/checkbox/Group'
+// import type { CheckboxValueType } from 'antd/es/checkbox/Group'
 import { useEffect } from 'react'
 import './style.scss'
 import { useRootSelector, useRootDispatch } from '@/store'
@@ -15,6 +15,8 @@ const plainOptions2 = ['pulp shape', 'flesh & heart']
 type Props = {
   noAction: boolean
 }
+
+type CheckboxValueType = string | number
 
 const MainSelect = (props: Props) => {
 
