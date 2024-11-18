@@ -41,10 +41,7 @@ const settingsStore = createSlice({
   }
 })
 
-const { setModeValue, setCharacterValue, setCompressionSize, setCheckAll, setIndeterminate } = settingsStore.actions
+export const { setModeValue, setCharacterValue, setCompressionSize, setCheckAll, setIndeterminate } = settingsStore.actions
 
 const settingsReducer = settingsStore.reducer
-
-export { setModeValue, setCharacterValue, setCompressionSize, setCheckAll, setIndeterminate }
-
 export default settingsReducer

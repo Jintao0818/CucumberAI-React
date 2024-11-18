@@ -30,7 +30,7 @@ function useInit() {
       StatusAPI().then((res) => {
         setStatus(res.data.status)
       })
-    }, 5000)
+    }, 50000)
     // 清理定时器
     return () => {
       clearInterval(intervalId)
